@@ -1,6 +1,6 @@
 import { spawn } from "node:child_process";
-import { readFile } from "node:fs/promises";
-import { join } from "node:path";
+import { readFile, readdir, stat as statFile } from "node:fs/promises";
+import { join, relative, resolve } from "node:path";
 import { defaultStateDir, ensureDir, prepareCodexHome } from "./codex-home.js";
 
 export const CODEX_BIN = process.env.CODEX_BIN || "codex";
@@ -153,13 +153,21 @@ export async function runCodex({
   const prepared = await prepareCodexHome({ stateDir });
   const lastMessagePath = join(prepared.stateDir, "last-message.txt");
   await ensureDir(prepared.stateDir);
+  const workdir = resolve(cwd);
 
   const args = ["exec"];
   if (threadId) {
     args.push("resume", threadId);
-    args.push("--json", "--skip-git-repo-check", "--all", "-c", `sandbox_mode="${sandbox}"`);
+    args.push("--json", "--skip-git-repo-check", "--all");
+    if (sandbox === "danger-full-access") {
+      // A nested sandbox (e.g. the DSH bash sandbox) can make Codex's own
+      // workspace-write sandbox fail writes; the outer boundary already exists.
+      args.push("--dangerously-bypass-approvals-and-sandbox");
+    } else {
+      args.push("-c", `sandbox_mode="${sandbox}"`);
+    }
   } else {
-    args.push("--json", "--skip-git-repo-check", "-s", sandbox, "-C", cwd);
+    args.push("--json", "--skip-git-repo-check", "-s", sandbox, "-C", workdir);
   }
   args.push("-o", lastMessagePath);
   if (model) args.push("-m", model);
@@ -167,7 +175,7 @@ export async function runCodex({
 
   const env = { ...process.env, CODEX_HOME: prepared.codexHome };
   const result = await runProcess(CODEX_BIN, args, {
-    cwd,
+    cwd: workdir,
     env,
     timeoutMs,
     stdin: prompt,
@@ -233,6 +241,70 @@ export async function codexStatus({ stateDir = defaultStateDir() } = {}) {
   };
 }
 
+/** Synthesize unified-diff hunks for untracked files so new files are audited too. */
+async function buildUntrackedDiff(cwd, entries, maxBytes) {
+  const parts = [];
+  let used = 0;
+  let truncated = false;
+
+  const addFile = async (absolute, relativePath) => {
+    if (used >= maxBytes) {
+      truncated = true;
+      return;
+    }
+    let text;
+    try {
+      text = await readFile(absolute, "utf8");
+    } catch {
+      return;
+    }
+    if (text.includes("\u0000")) return; // binary
+    const lines = text.split(/\r?\n/);
+    if (lines.length > 0 && lines[lines.length - 1] === "") lines.pop();
+    const chunk = [
+      `diff --git a/${relativePath} b/${relativePath}`,
+      "new file mode 100644",
+      "--- /dev/null",
+      `+++ b/${relativePath}`,
+      `@@ -0,0 +1,${lines.length} @@`,
+      ...lines.map((line) => `+${line}`),
+    ].join("\n");
+    const slice = chunk.slice(0, Math.max(0, maxBytes - used));
+    if (slice.length < chunk.length) truncated = true;
+    parts.push(slice);
+    used += slice.length;
+  };
+
+  const walk = async (absolute, relativePath) => {
+    let info;
+    try {
+      info = await statFile(absolute);
+    } catch {
+      return;
+    }
+    if (info.isDirectory()) {
+      let children;
+      try {
+        children = await readdir(absolute);
+      } catch {
+        return;
+      }
+      for (const child of children) {
+        if (child === ".git" || child === "node_modules") continue;
+        await walk(join(absolute, child), `${relativePath}/${child}`);
+      }
+    } else if (info.isFile()) {
+      await addFile(absolute, relativePath);
+    }
+  };
+
+  for (const entry of entries) {
+    const clean = entry.replace(/\/$/, "");
+    await walk(join(cwd, clean), clean);
+  }
+  return { text: parts.join("\n"), truncated };
+}
+
 /** Collect `git status` + `git diff` from a workspace as audit evidence. */
 export async function collectDiff({ cwd = process.cwd(), maxBytes = 200_000 } = {}) {
   const runGit = (args) =>
@@ -248,6 +320,12 @@ export async function collectDiff({ cwd = process.cwd(), maxBytes = 200_000 } = 
   }
   const diff = await runGit(["diff", "--no-color"]);
   const staged = await runGit(["diff", "--cached", "--no-color"]);
+  const untrackedEntries = status.stdout
+    .split(/\r?\n/)
+    .filter((line) => line.startsWith("?? "))
+    .map((line) => line.slice(3).trim())
+    .filter(Boolean);
+  const untrackedPart = await buildUntrackedDiff(cwd, untrackedEntries, maxBytes);
 
   const truncate = (text) => {
     const value = String(text || "");
@@ -255,7 +333,7 @@ export async function collectDiff({ cwd = process.cwd(), maxBytes = 200_000 } = 
     return { text: value.slice(0, maxBytes), truncated: true };
   };
 
-  const diffPart = truncate(diff.stdout);
+  const diffPart = truncate([diff.stdout, untrackedPart.text].filter(Boolean).join("\n"));
   const stagedPart = truncate(staged.stdout);
   return {
     ok: true,
@@ -263,6 +341,7 @@ export async function collectDiff({ cwd = process.cwd(), maxBytes = 200_000 } = 
     status: status.stdout.trim(),
     diff: diffPart.text,
     stagedDiff: stagedPart.text,
-    truncated: diffPart.truncated || stagedPart.truncated,
+    truncated: diffPart.truncated || stagedPart.truncated || untrackedPart.truncated,
+    untracked_files: untrackedEntries,
   };
 }

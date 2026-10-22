@@ -14,6 +14,7 @@
 - MCP server 默认 stdio、只在本机运行，不监听网络端口。
 - 监督目标的工作目录必须是显式传入的；不默认扫描用户主目录。
 - 运行 Codex 时使用最小必要沙箱策略（默认 `workspace-write`，只读审查用 `read-only`），不默认 `danger-full-access`。
+- **嵌套沙箱注意**：当 codex-supervisor 本身已运行在受限环境（例如 DeepSeek Harness 的 bash 沙箱）时，Codex 自带的 workspace-write 沙箱可能无法写入工作区（表现为 `Failed to write file`）。此时可显式使用 `sandbox: "danger-full-access"`：外层边界仍由宿主沙箱提供。若在无外层沙箱的普通终端运行，请保持 `workspace-write` 并自行确认工作区可写。
 
 ## 信任模型
 

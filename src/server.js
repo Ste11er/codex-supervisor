@@ -11,6 +11,8 @@ import {
   runCodex,
 } from "./runner.js";
 import { auditChange } from "./audit.js";
+import { buildCorrectionPrompt } from "./prompt.js";
+import { supervise } from "./supervise.js";
 import { defaultStateDir } from "./codex-home.js";
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -172,6 +174,96 @@ export function createServer() {
         );
       }
       return textResult(auditChange({ diff: diffText, reply: reply || "" }));
+    },
+  );
+
+  server.registerTool(
+    "codex_correct",
+    {
+      title: "Send evidence-backed corrections to Codex",
+      description:
+        "Build a correction instruction from audit findings (rule_id / file:line / evidence + action bias) " +
+        "and send it to an existing Codex thread.",
+      inputSchema: {
+        thread_id: z.string().min(1).describe("Thread id returned by codex_ask"),
+        findings: z
+          .array(
+            z.object({
+              rule_id: z.string(),
+              severity: z.string().optional(),
+              file: z.string().nullable().optional(),
+              line: z.number().nullable().optional(),
+              evidence: z.string().optional(),
+              message: z.string().optional(),
+              suggestion: z.string().optional(),
+              source: z.string().optional(),
+              confidence: z.string().optional(),
+            }),
+          )
+          .min(1)
+          .describe("Actionable findings produced by audit_change"),
+        task: z.string().optional().describe("Original task, included in the correction"),
+        cwd: z.string().optional(),
+        model: z.string().optional(),
+        timeout_ms: z.number().int().positive().optional(),
+      },
+      annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: true },
+    },
+    async ({ thread_id, findings, task, cwd, model, timeout_ms }) => {
+      const prompt = buildCorrectionPrompt({
+        findings,
+        task: task || "",
+        round: 1,
+        maxRounds: 1,
+        cwd: cwd || "",
+      });
+      const result = await runCodex({
+        prompt,
+        cwd: cwd || process.cwd(),
+        threadId: thread_id,
+        model: model || null,
+        timeoutMs: timeout_ms || DEFAULT_TIMEOUT_MS,
+      });
+      if (!result.ok) return turnResult(result);
+      return textResult({
+        ok: true,
+        reply: result.reply,
+        thread_id: result.threadId,
+        findings_sent: findings.length,
+        duration_ms: result.durationMs,
+      });
+    },
+  );
+
+  server.registerTool(
+    "supervise",
+    {
+      title: "Supervise Codex through audit and correction",
+      description:
+        "Run task -> Codex turn -> collect diff -> audit -> correction -> re-check, up to max_rounds. " +
+        "Returns a structured report with status clean / unresolved / error and per-round findings.",
+      inputSchema: {
+        task: z.string().min(1).describe("Task for Codex"),
+        cwd: z.string().min(1).describe("Git workspace Codex works in"),
+        max_rounds: z.number().int().min(1).max(10).optional().describe("Correction rounds (default 3)"),
+        thread_id: z.string().optional(),
+        model: z.string().optional(),
+        sandbox: SANDBOX.optional(),
+        timeout_ms: z.number().int().positive().optional(),
+      },
+      annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: true },
+    },
+    async ({ task, cwd, max_rounds, thread_id, model, sandbox, timeout_ms }) => {
+      const report = await supervise({
+        task,
+        cwd,
+        maxRounds: max_rounds || 3,
+        threadId: thread_id || null,
+        model: model || null,
+        sandbox: sandbox || "workspace-write",
+        timeoutMs: timeout_ms,
+      });
+      return textResult(report, { isError: report.status === "error" });
     },
   );
 

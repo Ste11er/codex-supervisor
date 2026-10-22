@@ -100,6 +100,8 @@
 | `codex_status` | — | 登录态、额度、模型、CLI 版本 |
 | `codex_diff` | `cwd` | `status`, `diff` |
 | `audit_change` | `cwd?` / `diff?` / `reply?` | `findings[]`, `summary` |
+| `codex_correct` | `thread_id`, `findings[]` | 纠正后的 `reply`, `thread_id` |
+| `supervise` | `task`, `cwd`, `max_rounds?` | 逐轮 findings、`status`、`history_file` |
 | `audit_change` | `cwd?`, `diff?`, `text?` | `findings[]`, `summary` |
 | `codex_correct` | `thread_id`, `findings[]`, `task?` | 纠正后的回复 |
 | `supervise` | `task`, `cwd`, `max_rounds?`, `policy?` | 每轮审计、最终报告、遗留项 |

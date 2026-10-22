@@ -30,3 +30,4 @@ outputs/
 .codex-probe/
 .probe/
 .phase1-probe/
+.fake-codex-state/

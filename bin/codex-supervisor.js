@@ -18,7 +18,7 @@ const help = `codex-supervisor v${pkg.version}
 MCP bridge for supervising OpenAI Codex: drive, audit, and correct
 defensive-programming and timid behavior.
 
-Status: MCP transport + 40-class audit engine implemented (Phase 2).
+Status: MCP transport + 40-class audit engine + supervise loop implemented (Phase 3).
 
 Implemented MCP tools:
   codex_ask        send a task to Codex and return its reply + thread_id
@@ -26,10 +26,8 @@ Implemented MCP tools:
   codex_status     login, quota, model and version information
   codex_diff       collect git status/diff as audit evidence
   audit_change     audit a diff and/or Codex reply against 40 anti-defensive rules
-
-Planned (Phase 3):
-  codex_correct    send evidence-backed corrections to the same thread
-  supervise        run task -> audit -> correct -> re-check -> report
+  codex_correct    send evidence-backed corrections to an existing thread
+  supervise        task -> audit -> correct -> re-check -> structured report (<=3 rounds)
 
 Usage:
   codex-supervisor --version
