@@ -1,0 +1,28 @@
+# dependencies
+node_modules/
+.pnpm-store/
+
+# build / test artifacts
+dist/
+coverage/
+*.tsbuildinfo
+
+# local state and secrets
+.env
+.env.*
+.codex-home/
+*.sqlite
+*.sqlite3
+*.log
+
+# editor / OS
+.DS_Store
+.idea/
+.vscode/
+*.swp
+
+# local runtime evidence and probes
+outputs/
+.pw-probe/
+.codex-probe/
+.probe/

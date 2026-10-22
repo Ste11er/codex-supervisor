@@ -1,0 +1,43 @@
+{
+  "name": "codex-supervisor",
+  "version": "0.0.1",
+  "description": "MCP bridge for supervising OpenAI Codex: drive, audit, and correct defensive-programming and timid behavior.",
+  "type": "module",
+  "license": "MIT",
+  "author": "Ste11er",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Ste11er/codex-supervisor.git"
+  },
+  "homepage": "https://github.com/Ste11er/codex-supervisor#readme",
+  "bugs": {
+    "url": "https://github.com/Ste11er/codex-supervisor/issues"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "bin": {
+    "codex-supervisor": "bin/codex-supervisor.js"
+  },
+  "files": [
+    "bin",
+    "src",
+    "policy",
+    "docs",
+    "LICENSE",
+    "README.md"
+  ],
+  "scripts": {
+    "start": "node bin/codex-supervisor.js",
+    "test": "node --test"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "codex",
+    "openai",
+    "ai-agent",
+    "supervision",
+    "deepseek-harness"
+  ]
+}
