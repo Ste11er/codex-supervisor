@@ -1,0 +1,12 @@
+- insert:
+    - id: mcp-codex-supervisor
+      name: '@deepseek-ai/dsh-mcp-client'
+      config:
+        serverName: codex_supervisor
+        transport: stdio
+        command: node
+        args: ['__REPO__/bin/server.js']
+        cwd: '__REPO__'
+        env:
+          CODEX_SUPERVISOR_STATE_DIR: '__REPO__/.state'
+        failOnStartupError: true

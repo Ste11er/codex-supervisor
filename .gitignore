@@ -1,6 +1,7 @@
 # dependencies
 node_modules/
 .pnpm-store/
+.npm-cache/
 
 # build / test artifacts
 dist/
@@ -11,6 +12,7 @@ coverage/
 .env
 .env.*
 .codex-home/
+.state/
 *.sqlite
 *.sqlite3
 *.log
@@ -20,9 +22,11 @@ coverage/
 .idea/
 .vscode/
 *.swp
+*.bak
 
 # local runtime evidence and probes
 outputs/
 .pw-probe/
 .codex-probe/
 .probe/
+.phase1-probe/
