@@ -10,6 +10,7 @@ import {
   DEFAULT_TIMEOUT_MS,
   runCodex,
 } from "./runner.js";
+import { auditChange } from "./audit.js";
 import { defaultStateDir } from "./codex-home.js";
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -139,6 +140,38 @@ export function createServer() {
     async ({ cwd, max_bytes }) => {
       const result = await collectDiff({ cwd, maxBytes: max_bytes || 200_000 });
       return textResult(result, { isError: !result.ok });
+    },
+  );
+
+  server.registerTool(
+    "audit_change",
+    {
+      title: "Audit change against anti-defensive rules",
+      description:
+        "Audit a unified diff and/or Codex reply text against the 40-class anti-defensive rule catalog. " +
+        "Pass cwd to collect git status/diff automatically, or pass diff/reply directly.",
+      inputSchema: {
+        cwd: z.string().optional().describe("Git workspace to collect the diff from"),
+        diff: z.string().optional().describe("Unified diff text to audit"),
+        reply: z.string().optional().describe("Codex reply text to audit for timid/over-defensive behavior"),
+        max_bytes: z.number().int().positive().optional(),
+      },
+      annotations: { readOnlyHint: true, openWorldHint: false },
+    },
+    async ({ cwd, diff, reply, max_bytes }) => {
+      let diffText = diff || "";
+      if (!diffText && cwd) {
+        const collected = await collectDiff({ cwd, maxBytes: max_bytes || 200_000 });
+        if (!collected.ok) return textResult(collected, { isError: true });
+        diffText = [collected.diff, collected.stagedDiff].filter(Boolean).join("\n");
+      }
+      if (!diffText.trim() && !String(reply || "").trim()) {
+        return textResult(
+          { ok: false, error: "需要 cwd、diff 或 reply 中的至少一个输入" },
+          { isError: true },
+        );
+      }
+      return textResult(auditChange({ diff: diffText, reply: reply || "" }));
     },
   );
 

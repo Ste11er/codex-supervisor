@@ -1,6 +1,6 @@
 {
   "name": "codex-supervisor",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "MCP bridge for supervising OpenAI Codex: drive, audit, and correct defensive-programming and timid behavior.",
   "type": "module",
   "license": "MIT",
@@ -34,7 +34,8 @@
     "mcp": "node bin/server.js",
     "cli": "node bin/codex-supervisor.js",
     "test": "node --test",
-    "live-check": "node scripts/live-check.js"
+    "live-check": "node scripts/live-check.js",
+    "audit-check": "node scripts/audit-check.js"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.32.1",

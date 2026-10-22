@@ -13,16 +13,16 @@
 - [x] 隔离 `CODEX_HOME`（auth 副本 600 + 最小 config，不写 `~/.codex`）
 - [x] MCP stdio server：`codex_ask` / `codex_continue` / `codex_status` / `codex_diff`
 - [x] DSH config-only bundle（`dsh/`）与安装脚本
-- [x] 单元测试：JSONL 解析、隔离目录、MCP 冒烟
-- [x] 真实两轮 Codex 调用验证（isolated `CODEX_HOME`）
+- [x] 单元测试 + 真实两轮 Codex 调用验证
 
-## Phase 2 — 审计与策略
+## Phase 2 — 审计与策略 ✅
 
-- [ ] 规则引擎：A–H 共 40 类，支持 Python/TS/JS/Shell 的 diff 扫描
-- [ ] 回复文本的畏缩行为检测
-- [ ] `policy/anti-defensive.md`：规则正文、正例/反例回归集
-- [ ] `audit_change` 工具
-- [ ] 单元测试：TP/FP 样例 ≥ 20 条
+- [x] 40 类规则目录（A01–H05，含检测方式/严重级/建议）
+- [x] diff 新增行静态检测（≥20 类）+ 跨行模式（吞异常/覆盖因果/删断言）
+- [x] 回复文本畏缩行为检测（H05/H04/G02/H02）
+- [x] `policy/anti-defensive.md`：规则表、正例/反例、行动偏好、误报处理
+- [x] `audit_change` MCP 工具
+- [x] 测试：反例 ≥20 条、正例 FP 回归 ≥6 条
 
 ## Phase 3 — 监督闭环
 

@@ -36,7 +36,7 @@ test(
       await client.connect(transport);
       const { tools } = await client.listTools();
       const names = tools.map((tool) => tool.name).sort();
-      assert.deepEqual(names, ["codex_ask", "codex_continue", "codex_diff", "codex_status"]);
+      assert.deepEqual(names, ["audit_change", "codex_ask", "codex_continue", "codex_diff", "codex_status"]);
 
       const response = await client.callTool({ name: "codex_status", arguments: {} });
       assert.ok(Array.isArray(response.content) && response.content.length > 0);
