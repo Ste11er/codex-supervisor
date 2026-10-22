@@ -25,7 +25,7 @@ const EVIDENCE_DIR = join(WORKSPACE_ROOT, "outputs", "evidence");
 const STATE_DIR = join(REPO_ROOT, ".state", FAKE ? "supervise-check-fake" : "supervise-check");
 const TARGET_REPO = join(STATE_DIR, "repo");
 const SERVER_PATH = join(REPO_ROOT, "bin", "server.js");
-const FAKE_CODEX = join(REPO_ROOT, "test", "fixtures", "fake-codex.js");
+const FAKE_CODEX = join(REPO_ROOT, "scripts", "fake-codex.js");
 const EVIDENCE_FILE = join(
   EVIDENCE_DIR,
   FAKE ? "phase3-supervise-simulated.json" : "phase3-supervise.json",
