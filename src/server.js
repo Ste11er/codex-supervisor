@@ -1,4 +1,5 @@
 import { readFileSync } from "node:fs";
+import { appendFile, mkdir } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
@@ -274,8 +275,19 @@ export async function main() {
   const server = createServer();
   const transport = new StdioServerTransport();
   await server.connect(transport);
-  // Keep the state dir warm/validated at startup (no network calls).
-  await defaultStateDir();
+  // Best-effort startup marker: lets operators verify the host (e.g. DSH) actually
+  // mounted and started this MCP server. Never fail the server for observability.
+  try {
+    const stateDir = defaultStateDir();
+    await mkdir(stateDir, { recursive: true });
+    await appendFile(
+      join(stateDir, "server-start.log"),
+      `${new Date().toISOString()} pid=${process.pid}\n`,
+      "utf8",
+    );
+  } catch {
+    // ignore: observability only
+  }
 }
 
 const isEntry =
