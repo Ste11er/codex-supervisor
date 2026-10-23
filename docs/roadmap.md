@@ -38,3 +38,10 @@
 - [x] DSH 挂载验证：隔离 `DSH_HOME` 中 `dsh --profile web --dump-config` 合入 `mcp-codex-supervisor`（含 `toolCallTimeoutMs: 600000`）
 - [x] 真实 Codex 闭环演示：额度恢复后通过 MCP `supervise` 跑完整闭环（若额度受限则保留阻塞证据，shim 演示保底）
 - [x] 发布 v1.0.0（tag `v1.0.0`）
+
+## Phase 5 — 会话级反防御 ✅
+
+- [x] 新增 X01–X05 会话级规则（过度对冲、学究式定义、事实核查升级、追问让步循环、元讨论）
+- [x] 纠正提示词加入“先直接回答，再补限定”的行动要求
+- [x] 单元测试覆盖“吃了吗”反模式与合法技术不确定性的 FP 门禁
+- [x] 发布 v1.1.0

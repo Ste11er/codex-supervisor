@@ -37,6 +37,7 @@ export const GROUPS = {
   F: "回退与伪成功",
   G: "参数与缩水",
   H: "验收与流程",
+  X: "会话级过度防御",
 };
 
 export const RULES = [
@@ -344,6 +345,57 @@ export const RULES = [
       }),
     ],
   },
+  // ── X 会话级过度防御（扩展组）────────────────────────────────────────────
+  {
+    id: "X01", group: "X", title: "简单问题不直接回答（过度对冲）", detection: "text", severity: "warning",
+    description: "对“吃了吗/在不在/能不能”这类简单问题，用“仍待事实核查/没有足够证据/最有力的说法是”等对冲代替直接回答。",
+    suggestion: "先用一句话直接回答（是/否/结论/数值），再补充必要限定；日常问题不需要证据等级声明。",
+    textMatchers: [
+      t(/(?:仍待|有待)(?:事实核查|核实|确认|验证)|(?:没有|缺乏)足够证据(?:确认|证明|支持)|最有力的说法是|不能(?:直接)?(?:说明|证明|确认)|更不能说明/, {
+        message: "简单问题被升级为证据/核查式对冲，没有先给直接答案",
+      }),
+    ],
+  },
+  {
+    id: "X02", group: "X", title: "学究式定义/术语裁决", detection: "text", severity: "warning",
+    description: "先把用户已知的词（饭/红肉）钉死定义、区分狭义广义，再讨论能否成立。",
+    suggestion: "按日常语义直接回答；只有用户明确要求定义或双方用法冲突时才澄清术语。",
+    textMatchers: [
+      t(/(?:先把|首先把|把).{0,16}定义(?:钉死|固定|明确)|定义(?:钉死|之争|问题)|(?:狭义|广义)(?:上|的|来说)|最关键的一刀|一刀口/, {
+        message: "用定义/术语裁决替代直接回答",
+      }),
+    ],
+  },
+  {
+    id: "X03", group: "X", title: "日常问题升级为事实核查", detection: "text", severity: "warning",
+    description: "把闲聊式问题当成需要证据链、营养学结论的正式论断。",
+    suggestion: "先按对话语境回答；只有涉及真实高风险决策时才升级为事实核查。",
+    textMatchers: [
+      t(/(?:事实核查|证据链|可核查|待核实|有待验证|营养充足|摄入量证据)/, {
+        message: "把日常问题升级为事实核查/正式论断",
+      }),
+    ],
+  },
+  {
+    id: "X04", group: "X", title: "追问后的过度让步与定义循环", detection: "text", severity: "warning",
+    description: "用户一追问就先“你说的对，我先把定义……”并扩大防御，而不是修正答案本身。",
+    suggestion: "先确认原答案是否真的错了：错了就直接改正并给结论；没错就简短澄清，不要把对话变成定义辩论。",
+    textMatchers: [
+      t(/你说的(?:对|没错)[，,、\s]*我(?:先|来|把|重新)|更准确地说[，,]|我(?:重新|再)(?:修正|定义)(?:一下)?|我(?:把|先)(?:定义|前提|结论)(?:钉|固定|明确)/, {
+        message: "追问触发了过度让步/定义循环",
+      }),
+    ],
+  },
+  {
+    id: "X05", group: "X", title: "元讨论替代回答", detection: "text", severity: "warning",
+    description: "回答前先讨论问题本身（取决于定义/需要先澄清概念），迟迟不给答案。",
+    suggestion: "先给答案，再说明边界；不要把“取决于定义”当作不回答的理由。",
+    textMatchers: [
+      t(/(?:取决于|要看)(?:你|我们|怎么|如何)(?:如何|怎么)?(?:定义|理解)|在回答(?:之前|前)[，,].{0,16}(?:先|需要)(?:澄清|明确)|(?:先|需要)(?:澄清|明确)(?:一下)?(?:概念|定义|前提)/, {
+        message: "用元讨论/澄清替代直接回答",
+      }),
+    ],
+  },
 ];
 
 export const RULE_BY_ID = new Map(RULES.map((rule) => [rule.id, rule]));
@@ -353,10 +405,11 @@ export const RULE_IDS = RULES.map((rule) => rule.id);
 export function validateCatalog(rules = RULES) {
   const ids = new Set();
   const expectedPrefix = { A: "A", B: "B", C: "C", D: "D", E: "E", F: "F", G: "G", H: "H" };
+  const extendedGroups = ["X"];
   for (const rule of rules) {
     if (ids.has(rule.id)) throw new Error(`duplicate rule id: ${rule.id}`);
     ids.add(rule.id);
-    if (!/^[A-H]\d{2}$/.test(rule.id)) throw new Error(`invalid rule id: ${rule.id}`);
+    if (!/^[A-HX]\d{2}$/.test(rule.id)) throw new Error(`invalid rule id: ${rule.id}`);
     if (rule.id[0] !== rule.group) throw new Error(`rule ${rule.id} group mismatch: ${rule.group}`);
     if (!GROUPS[rule.group]) throw new Error(`unknown group for ${rule.id}`);
     if (!rule.title || !rule.description) throw new Error(`rule ${rule.id} missing title/description`);
@@ -373,6 +426,10 @@ export function validateCatalog(rules = RULES) {
   for (const [prefix] of Object.entries(expectedPrefix)) {
     const count = rules.filter((rule) => rule.id.startsWith(prefix)).length;
     if (count !== 5) throw new Error(`group ${prefix} expected 5 rules, got ${count}`);
+  }
+  for (const prefix of extendedGroups) {
+    const count = rules.filter((rule) => rule.id.startsWith(prefix)).length;
+    if (count < 1) throw new Error(`group ${prefix} expected at least 1 rule`);
   }
   return { total: rules.length, groups: Object.keys(GROUPS).length };
 }

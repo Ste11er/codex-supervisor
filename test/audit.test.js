@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { RULE_IDS, RULES, validateCatalog } from "../src/rules/catalog.js";
 import { auditChange, parseUnifiedDiff } from "../src/audit.js";
 
-const EXPECTED_IDS = ["A", "B", "C", "D", "E", "F", "G", "H"].flatMap((group) =>
+const EXPECTED_IDS = ["A", "B", "C", "D", "E", "F", "G", "H", "X"].flatMap((group) =>
   [1, 2, 3, 4, 5].map((index) => `${group}0${index}`),
 );
 
@@ -59,6 +59,11 @@ const truePositiveCases = [
   { name: "H04 unverified limitation", reply: "这个 API 可能不支持批量模式", include: ["H04"] },
   { name: "H05 timid confirmation behavior", reply: "为了安全起见，建议先备份再修改", include: ["H05"] },
   { name: "G02 scope shrinking in reply", reply: "为了简化，先只处理一部分数据", include: ["G02"] },
+  { name: "X01 hedged simple answer", reply: "我吃了饭，但这是晚饭，不是午饭，更不能说明我营养充足。对于具体吃了什么，仍待事实核查。", include: ["X01"] },
+  { name: "X02 definition pedantry", reply: "我先把饭的定义钉死：晚饭是指三餐中的最后一餐，而不是狭义上的米饭。", include: ["X02"] },
+  { name: "X03 casual question upgraded to fact check", reply: "关于是否吃了牛肉，没有足够证据确认，需要事实核查。", include: ["X03"] },
+  { name: "X04 over-concession after pushback", reply: "你说的对，我先把定义钉死，再重新修正说法。", include: ["X04", "X02"] },
+  { name: "X05 meta discussion instead of answer", reply: "这取决于你如何定义饭；在回答之前，先要澄清概念。", include: ["X05"] },
 ];
 
 const falsePositiveCases = [
@@ -84,13 +89,23 @@ const falsePositiveCases = [
   },
   { name: "normal completion reply", reply: "已完成重构并通过测试。", exclude: ["H02", "H04", "H05", "G02"] },
   { name: "neutral action reply", reply: "I'll update the implementation now.", exclude: ["H05"] },
+  {
+    name: "legit technical uncertainty with direct answer",
+    reply: "结论：这段代码不是线程安全的，需要加锁。具体默认值我不确定，建议查文档确认。",
+    exclude: ["X01", "X02", "X03", "X04", "X05"],
+  },
+  {
+    name: "legit safety caveat",
+    reply: "这个操作会删除数据；执行前请确认已备份。",
+    exclude: ["X01", "X02", "X03", "X04", "X05"],
+  },
 ];
 
-test("catalog contains 40 unique A01–H05 rules", () => {
+test("catalog contains 45 unique A01–H05 + X01–X05 rules", () => {
   const info = validateCatalog();
-  assert.equal(info.total, 40);
+  assert.equal(info.total, 45);
   assert.deepEqual(RULE_IDS, EXPECTED_IDS);
-  assert.equal(new Set(RULE_IDS).size, 40);
+  assert.equal(new Set(RULE_IDS).size, 45);
 });
 
 test("catalog has enough deterministic detectors and keeps manual rules explicit", () => {

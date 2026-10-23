@@ -25,7 +25,7 @@ Implemented MCP tools:
   codex_continue   continue an existing Codex thread
   codex_status     login, quota, model and version information
   codex_diff       collect git status/diff as audit evidence
-  audit_change     audit a diff and/or Codex reply against 40 anti-defensive rules
+  audit_change     audit a diff and/or Codex reply against 45 anti-defensive rules (A–H + X)
   codex_correct    send evidence-backed corrections to an existing thread
   supervise        task -> audit -> correct -> re-check -> structured report (<=3 rounds)
 

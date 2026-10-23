@@ -3,7 +3,7 @@
 > 让 AI Agent 通过 [MCP](https://modelcontextprotocol.io) 驱动、审计并纠正 OpenAI Codex —— 专治**防御性编程**与**畏缩行为**。
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Status: v1.0.0](https://img.shields.io/badge/status-v1.0.0-brightgreen.svg)](docs/roadmap.md)
+[![Status: v1.1.0](https://img.shields.io/badge/status-v1.1.0-brightgreen.svg)](docs/roadmap.md)
 
 ## 背景
 
@@ -17,20 +17,20 @@ Codex / GPT 在工程任务中经常进入一种「带着镣铐工作」的状�
 
 ## 当前状态（v1.0.0 / 全部阶段完成）
 
-Phase 0–4 已完成：通道、40 类审计、监督闭环、审计历史、真实项目只读审计演示、DSH 挂载配置验证与 v1.0.0 发布。变更记录见 [CHANGELOG.md](CHANGELOG.md)。
+Phase 0–5 已完成：通道、40 类 + 5 条会话级审计、监督闭环、审计历史、真实项目只读审计演示、DSH 挂载验证与 v1.1.0 发布。变更记录见 [CHANGELOG.md](CHANGELOG.md)。
 
 已实现：
 
 - **通道**：隔离 `CODEX_HOME`（只复制 `auth.json` + 最小 model 配置，`600`）、`codex exec --json` + `resume` 同一 thread。
-- **审计**：40 类反防御规则（A01–H05）+ 回复文本畏缩检测；[policy/anti-defensive.md](policy/anti-defensive.md) 为策略正文。
+- **审计**：40 类反防御规则（A01–H05）+ 5 条会话级反防御（X01–X05，识别“吃了吗→仍待事实核查/先把定义钉死”式对冲）；[policy/anti-defensive.md](policy/anti-defensive.md) 为策略正文。
 - **监督闭环**：`supervise` 一次调用完成 任务 → 采集 diff → 审计 → 纠正 → 复验 → 结构化报告（默认 ≤3 轮，状态 `clean` / `unresolved` / `error`）。
 - **MCP 工具**：
   - `codex_status` / `codex_ask` / `codex_continue` / `codex_diff`
-  - `audit_change` — 40 类规则审计，返回 `rule_id / 文件:行 / 证据 / 建议 / summary`
+  - `audit_change` — 45 条规则审计（diff 或回复文本），返回 `rule_id / 文件:行 / 证据 / 建议 / summary`
   - `codex_correct` — 把 findings 转成带证据的纠正指令发回同一 thread
   - `supervise` — 闭环监督并返回逐轮 findings 与最终状态
 - **审计历史**：每次闭环写入 `$CODEX_SUPERVISOR_STATE_DIR/history.jsonl`。
-- **测试**：57+ 用例覆盖通道、隔离、40 类目录、TP/FP 回归、纠正提示、状态机三种结局。
+- **测试**：67+ 用例覆盖通道、隔离、45 条规则目录、TP/FP 回归、纠正提示、状态机三种结局。
 - **DSH 集成**：config-only bundle 模板与安装脚本。
 
 ## 快速开始
@@ -81,7 +81,7 @@ npm run supervise-check:fake  # 额度不可用时的确定性 shim 端到端演
 | `codex_ask` | `prompt`, `cwd?`, `thread_id?`, `model?`, `sandbox?`, `timeout_ms?` | 发任务；返回 `reply` / `thread_id` / `usage` |
 | `codex_continue` | `thread_id`, `prompt`, `cwd?`, `model?`, `timeout_ms?` | 同一 thread 续聊 |
 | `codex_diff` | `cwd`, `max_bytes?` | 采集 git 状态与 diff |
-| `audit_change` | `cwd?`, `diff?`, `reply?`, `max_bytes?` | 40 类规则审计；返回 findings + summary |
+| `audit_change` | `cwd?`, `diff?`, `reply?`, `max_bytes?` | 45 条规则审计；返回 findings + summary |
 | `codex_correct` | `thread_id`, `findings[]`, `task?`, `cwd?`, `model?`, `timeout_ms?` | 带证据的纠正指令发回同一 thread |
 | `supervise` | `task`, `cwd`, `max_rounds?`, `thread_id?`, `model?`, `sandbox?`, `timeout_ms?` | 完整监督闭环 + 结构化报告 |
 

@@ -151,7 +151,7 @@ export function createServer() {
     {
       title: "Audit change against anti-defensive rules",
       description:
-        "Audit a unified diff and/or Codex reply text against the 40-class anti-defensive rule catalog. " +
+        "Audit a unified diff and/or Codex reply text against the 45-rule anti-defensive catalog (A01–H05 + conversation-level X01–X05). " +
         "Pass cwd to collect git status/diff automatically, or pass diff/reply directly.",
       inputSchema: {
         cwd: z.string().optional().describe("Git workspace to collect the diff from"),
