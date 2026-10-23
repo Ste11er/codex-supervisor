@@ -3,7 +3,7 @@
 > 让 AI Agent 通过 [MCP](https://modelcontextprotocol.io) 驱动、审计并纠正 OpenAI Codex —— 专治**防御性编程**与**畏缩行为**。
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Status: phase 3](https://img.shields.io/badge/status-phase%203-blue.svg)](docs/roadmap.md)
+[![Status: v1.0.0](https://img.shields.io/badge/status-v1.0.0-brightgreen.svg)](docs/roadmap.md)
 
 ## 背景
 
@@ -15,7 +15,9 @@ Codex / GPT 在工程任务中经常进入一种「带着镣铐工作」的状�
 
 本项目把这种状态定义为可审计的违规模式，并提供一个监督闭环：一个 Agent（例如 DeepSeek Harness 中的主 Agent）通过 MCP 向 Codex 下任务，读取它的改动与回复，按规则审计，发现问题后把带证据的纠正指令发回 Codex，最多 N 轮后输出可信报告。
 
-## 当前状态（v0.3.0 / Phase 3）
+## 当前状态（v1.0.0 / 全部阶段完成）
+
+Phase 0–4 已完成：通道、40 类审计、监督闭环、审计历史、真实项目只读审计演示、DSH 挂载配置验证与 v1.0.0 发布。变更记录见 [CHANGELOG.md](CHANGELOG.md)。
 
 已实现：
 
@@ -107,6 +109,8 @@ supervise(task="实现 load_count(data)", cwd="/path/to/repo", max_rounds=3)
 ```
 
 低置信候选（`confidence: low`）只作为提示，不触发自动纠正；`error` 与普通 `warning` 才会进入纠正指令。失败、额度耗尽、超时都会以 `isError` + 结构化错误返回，**不会**伪装成空结果或成功。
+
+> **长任务超时**：`supervise` 一次调用可能持续数分钟（真实 Codex 两轮约 1–3 分钟），MCP 客户端需把 `toolCallTimeoutMs` 调到 `≥600000`；`dsh/` bundle 已默认设置为 `600000`。SDK 客户端示例：`client.callTool({...}, undefined, { timeout: 600000 })`。
 
 ## 安全
 

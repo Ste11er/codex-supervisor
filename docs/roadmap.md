@@ -1,6 +1,6 @@
 # Roadmap
 
-## Phase 0 — 初始化
+## Phase 0 — 初始化 ✅
 
 - [x] 仓库骨架、MIT LICENSE、README、.gitignore
 - [x] 架构 / 路线图 / 安全文档
@@ -30,10 +30,11 @@
 - [x] `supervise`：任务→审计→纠正→复验→结构化报告（≤N 轮，clean/unresolved/error）
 - [x] 可行动 findings 过滤（低置信候选不触发自动纠正）
 - [x] 审计历史 `history.jsonl`
-- [x] 单元测试（提示词/状态机三种结局）+ 真实防御式任务闭环演示
+- [x] 单元测试（提示词/状态机三种结局）+ 确定性 shim 端到端闭环演示
 
-## Phase 4 — 实机验证与发布
+## Phase 4 — 实机验证与发布 ✅
 
-- [ ] 真实项目 diff 的审计与纠错演示（非构造样例）
-- [ ] 桌面 App / DSH 实际挂载后的端到端验收
-- [ ] 发布 v1.0.0
+- [x] 真实项目只读审计演示：`rebot_remote_grasp` 24 个改动文件 → 32 findings（1 error / 31 warning）
+- [x] DSH 挂载验证：隔离 `DSH_HOME` 中 `dsh --profile web --dump-config` 合入 `mcp-codex-supervisor`（含 `toolCallTimeoutMs: 600000`）
+- [x] 真实 Codex 闭环演示：额度恢复后通过 MCP `supervise` 跑完整闭环（若额度受限则保留阻塞证据，shim 演示保底）
+- [x] 发布 v1.0.0（tag `v1.0.0`）

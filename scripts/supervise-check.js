@@ -96,7 +96,7 @@ async function main() {
           sandbox: "danger-full-access",
           timeout_ms: 420000,
         },
-      }),
+      }, undefined, { timeout: 600000 }),
     );
 
     evidence.report = {

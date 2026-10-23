@@ -9,4 +9,5 @@
         cwd: '__REPO__'
         env:
           CODEX_SUPERVISOR_STATE_DIR: '__REPO__/.state'
+        toolCallTimeoutMs: 600000
         failOnStartupError: true
