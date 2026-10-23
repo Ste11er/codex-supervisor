@@ -248,7 +248,7 @@ export const RULES = [
     id: "F04", group: "F", title: "多层默认值洗掉根因", detection: "static", severity: "warning",
     description: "内层空值、中层补默认、外层报成功，根因丢失。",
     suggestion: "修复最初契约违约并维护状态，不在多层叠加默认值。",
-    matchers: [m(/\bor\s+[^;\n]+?\s+or\s+/, { message: "链式默认值逐层洗掉根因" })],
+    matchers: [m(/(?:=|\breturn)\s+[^;\n]+?\s+or\s+[^;\n]+?\s+or\s+/, { message: "链式默认值逐层洗掉根因" })],
   },
   {
     id: "F05", group: "F", title: "无需求的备用实现/框架", detection: "static", severity: "info",

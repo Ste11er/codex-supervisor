@@ -115,8 +115,9 @@ function pushFinding(findings, rule, matcher, location) {
 export function auditDiff(diffText, { maxFindings = 500 } = {}) {
   const findings = [];
   const perFileAdded = new Map();
+  const hunks = parseUnifiedDiff(diffText);
 
-  for (const hunk of parseUnifiedDiff(diffText)) {
+  for (const hunk of hunks) {
     const language = languageOf(hunk.file);
     const added = hunk.lines.filter((line) => line.type === "+");
     const removed = hunk.lines.filter((line) => line.type === "-");
@@ -174,7 +175,42 @@ export function auditDiff(diffText, { maxFindings = 500 } = {}) {
     }
   }
 
+  suppressReraisedExceptionText(findings, hunks);
   return dedupe(findings).slice(0, maxFindings);
+}
+
+/**
+ * C04 false-positive guard: `except ... as exc: record(str(exc)); raise` keeps the
+ * cause (the re-raise propagates it). Only flag when the block converts the failure
+ * into a non-raising result.
+ */
+function suppressReraisedExceptionText(findings, hunks) {
+  for (const hunk of hunks) {
+    const added = hunk.lines.filter((line) => line.type === "+");
+    for (let index = 0; index < added.length; index += 1) {
+      const line = added[index];
+      const c04 = findings.find(
+        (finding) =>
+          finding.rule_id === "C04" &&
+          finding.file === hunk.file &&
+          finding.line === line.newLine,
+      );
+      if (!c04) continue;
+      let reRaised = false;
+      for (let next = index + 1; next < added.length && next <= index + 8; next += 1) {
+        const text = added[next].text;
+        if (/^\s*except\b/.test(text)) break;
+        if (/^\s*raise\b/.test(text)) {
+          reRaised = true;
+          break;
+        }
+      }
+      if (reRaised) {
+        const position = findings.indexOf(c04);
+        if (position >= 0) findings.splice(position, 1);
+      }
+    }
+  }
 }
 
 export function auditReply(text, { maxFindings = 200 } = {}) {

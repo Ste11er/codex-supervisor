@@ -95,6 +95,16 @@ const falsePositiveCases = [
     exclude: ["X01", "X02", "X03", "X04", "X05"],
   },
   {
+    name: "except block re-raises so C04 cause is preserved",
+    diff: makeDiff("camera.py", ["    except Exception as exc:", "        report.update(error=str(exc))", "        raise"]),
+    exclude: ["C04"],
+  },
+  {
+    name: "chained or in a security boundary check is not F04",
+    diff: makeDiff("deploy.py", ["    if p.is_absolute() or '..' in p.parts or member.issym():", "        raise ValueError('bad member')"]),
+    exclude: ["F04"],
+  },
+  {
     name: "legit safety caveat",
     reply: "这个操作会删除数据；执行前请确认已备份。",
     exclude: ["X01", "X02", "X03", "X04", "X05"],

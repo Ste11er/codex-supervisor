@@ -3,7 +3,7 @@
 > 让 AI Agent 通过 [MCP](https://modelcontextprotocol.io) 驱动、审计并纠正 OpenAI Codex —— 专治**防御性编程**与**畏缩行为**。
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Status: v1.1.0](https://img.shields.io/badge/status-v1.1.0-brightgreen.svg)](docs/roadmap.md)
+[![Status: v1.1.1](https://img.shields.io/badge/status-v1.1.1-brightgreen.svg)](docs/roadmap.md)
 
 ## 背景
 
@@ -17,7 +17,7 @@ Codex / GPT 在工程任务中经常进入一种「带着镣铐工作」的状�
 
 ## 当前状态（v1.0.0 / 全部阶段完成）
 
-Phase 0–5 已完成：通道、40 类 + 5 条会话级审计、监督闭环、审计历史、真实项目只读审计演示、DSH 挂载验证与 v1.1.0 发布。变更记录见 [CHANGELOG.md](CHANGELOG.md)。
+Phase 0–5 已完成：通道、40 类 + 5 条会话级审计、监督闭环、审计历史、真实项目只读审计演示、DSH 挂载验证与 v1.1.x 发布。变更记录见 [CHANGELOG.md](CHANGELOG.md)。
 
 已实现：
 
@@ -30,7 +30,7 @@ Phase 0–5 已完成：通道、40 类 + 5 条会话级审计、监督闭环、
   - `codex_correct` — 把 findings 转成带证据的纠正指令发回同一 thread
   - `supervise` — 闭环监督并返回逐轮 findings 与最终状态
 - **审计历史**：每次闭环写入 `$CODEX_SUPERVISOR_STATE_DIR/history.jsonl`。
-- **测试**：67+ 用例覆盖通道、隔离、45 条规则目录、TP/FP 回归、纠正提示、状态机三种结局。
+- **测试**：76 用例覆盖通道、隔离、45 条规则目录、TP/FP 回归、纠正提示、状态机三种结局。
 - **DSH 集成**：config-only bundle 模板与安装脚本。
 
 ## 快速开始
