@@ -1,5 +1,16 @@
 # Changelog
 
+## v1.0.1 — 2026-10-23
+
+### Added
+
+- MCP server startup marker：`$CODEX_SUPERVISOR_STATE_DIR/server-start.log` 记录启动时间与 PID，便于验证宿主（DSH）确实挂载并启动了本服务。
+
+### Changed
+
+- DSH bundle 默认 `toolCallTimeoutMs: 600000`（`supervise` 单次调用可能持续数分钟）。
+- README/security 补充嵌套沙箱与长任务超时说明。
+
 ## v1.0.0 — 2026-10-22
 
 首个可用版本：通过 MCP 驱动 Codex、按 40 类反防御规则审计、并在监督闭环中把带证据的纠正指令发回 Codex。

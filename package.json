@@ -1,6 +1,6 @@
 {
   "name": "codex-supervisor",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "MCP bridge for supervising OpenAI Codex: drive, audit, and correct defensive-programming and timid behavior.",
   "type": "module",
   "license": "MIT",
